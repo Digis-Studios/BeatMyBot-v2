@@ -158,7 +158,9 @@ func (m *Match) Run() error {
 	defer m.Bot2.Stop()
 
 	// Give bots a moment to initialize
-	time.Sleep(100 * time.Millisecond)
+	// Increased to 500ms for Windows Docker Desktop (WSL2/Hyper-V overhead)
+	// Linux can handle 100ms but Windows needs more time for pipe initialization
+	time.Sleep(500 * time.Millisecond)
 
 	if m.Config.Verbose {
 		fmt.Println("Match started!")
