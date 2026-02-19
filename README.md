@@ -1,11 +1,13 @@
-❗Deadline Extended: Sprint 3 deadline at 12 noon. [Updated on 15.02.26 02:42]
+## 📢 Winner Announcement
 
-❗Rule Update: You cannot access the internet. [Updated on 10.02.26 17:25]
+Well Played to all the participants of Beat My Bot v1! But Alas, there can only be one winner. 
 
-❗Rule Update: Size limit of 10 MB for submission. [Updated on 09.02.26 14:54]
+We had a tough match up in the finals: **GlitchLabs** by Ruchit Jagodar vs **GodBot** by Akash Gupta and Naveen Pal. And the winner was decided by a margin of just 1 match. The results of Beat My Bot v1 are:
 
+Winner: 🏆  GlitchLabs by Ruchit Jagodara 🏆 
+Runner Ups: 🥈GodBot by Akash Gupta and Naveen Pal 🥈
 
-✅Bug fix: `test_match.bat` handles default values correctly now. [Updated on 09.02.26 14:54]
+You can see the replays of the tournament matches in [Tournament Replays](tournament-replays)
 
 # Beat my Bot v1 - Game Ssspecifications
 
