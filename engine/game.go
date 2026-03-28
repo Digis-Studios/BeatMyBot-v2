@@ -36,9 +36,10 @@ type Position struct {
 
 // Apple represents an apple on the game grid
 type Apple struct {
-	X    int       `json:"x"`
-	Y    int       `json:"y"`
-	Type AppleType `json:"type"`
+	X        int       `json:"x"`
+	Y        int       `json:"y"`
+	Type     AppleType `json:"type"`
+	SpawnedAt int     `json:"spawned_at"` // Turn number when apple was spawned
 }
 
 // Snake represents a player's snake
@@ -427,7 +428,7 @@ func (gs *GameState) SpawnApple() {
 			appleType = ApplePoison
 		}
 
-		gs.Apples = append(gs.Apples, Apple{X: pos.X, Y: pos.Y, Type: appleType})
+		gs.Apples = append(gs.Apples, Apple{X: pos.X, Y: pos.Y, Type: appleType, SpawnedAt: gs.Turn})
 	}
 }
 
@@ -519,6 +520,13 @@ func (gs *GameState) ProcessTurn(move1, move2 Direction) {
 
 		if collision1 || collision2 {
 			break // Stop if collision occurs
+		}
+	}
+
+	// Convert normal apples to poison after 15 turns
+	for i := range gs.Apples {
+		if gs.Apples[i].Type == AppleNormal && (gs.Turn - gs.Apples[i].SpawnedAt) >= 15 {
+			gs.Apples[i].Type = ApplePoison
 		}
 	}
 
