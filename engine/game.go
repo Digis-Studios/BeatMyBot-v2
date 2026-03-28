@@ -457,7 +457,7 @@ func (gs *GameState) checkGameOver() {
 }
 
 // ProcessTurn processes one turn of the game
-func (gs *GameState) ProcessTurn(move1, move2 Direction) {
+func (gs *GameState) ProcessTurn(move1, move2 Direction, shed1, shed2 bool) {
 	gs.Turn++
 
 	// Move snakes (once or twice if speed is active)
@@ -478,12 +478,34 @@ func (gs *GameState) ProcessTurn(move1, move2 Direction) {
 	}
 
 	for moveCount := 0; moveCount < maxMoves; moveCount++ {
-		// Only move if not frozen and still have moves remaining
+		// Store positions before move for shed effect
+		var positionsBeforeMove1 []Position
+		var positionsBeforeMove2 []Position
+
 		if gs.Snakes[0].SleepTurns <= 0 && moveCount < movesToMake1 {
+			if shed1 {
+				// Copy current positions
+				positionsBeforeMove1 = make([]Position, len(gs.Snakes[0].Body))
+				copy(positionsBeforeMove1, gs.Snakes[0].Body)
+			}
 			gs.Snakes[0].Move(move1, false)
+			// Apply shed effect
+			if shed1 {
+				gs.applyShedEffect(gs.Snakes[0], positionsBeforeMove1)
+			}
 		}
+
 		if gs.Snakes[1].SleepTurns <= 0 && moveCount < movesToMake2 {
+			if shed2 {
+				// Copy current positions
+				positionsBeforeMove2 = make([]Position, len(gs.Snakes[1].Body))
+				copy(positionsBeforeMove2, gs.Snakes[1].Body)
+			}
 			gs.Snakes[1].Move(move2, false)
+			// Apply shed effect
+			if shed2 {
+				gs.applyShedEffect(gs.Snakes[1], positionsBeforeMove2)
+			}
 		}
 
 		// Check for collisions
@@ -651,6 +673,36 @@ func (gs *GameState) ApplyAppleEffect(snakeID int, appleType AppleType) {
 		}
 		if snake.Score > 0 {
 			snake.Score--
+		}
+	}
+}
+
+// applyShedEffect handles the shed ability: halves energy and places walls at vacated positions
+func (gs *GameState) applyShedEffect(snake *Snake, positionsBeforeMove []Position) {
+	// Halve the energy
+	snake.Energy = snake.Energy / 2
+
+	// Find positions that were occupied before but are not occupied now
+	currentPositions := make(map[string]bool)
+	for _, pos := range snake.Body {
+		currentPositions[fmt.Sprintf("%d,%d", pos.X, pos.Y)] = true
+	}
+
+	for _, oldPos := range positionsBeforeMove {
+		posKey := fmt.Sprintf("%d,%d", oldPos.X, oldPos.Y)
+		if !currentPositions[posKey] {
+			// This position was occupied before but not now - add as wall
+			// Check if this position is not already an obstacle
+			isAlreadyObstacle := false
+			for _, obstacle := range gs.Map.Obstacles {
+				if obstacle.X == oldPos.X && obstacle.Y == oldPos.Y {
+					isAlreadyObstacle = true
+					break
+				}
+			}
+			if !isAlreadyObstacle {
+				gs.Map.Obstacles = append(gs.Map.Obstacles, oldPos)
+			}
 		}
 	}
 }

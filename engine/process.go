@@ -43,6 +43,7 @@ type BotPlayer struct {
 // MoveResponse represents a bot's response
 type MoveResponse struct {
 	Move      Direction     `json:"move"`
+	Shed      bool          `json:"shed"`
 	Timeout   bool          `json:"timeout"`
 	Error     error         `json:"error,omitempty"`
 	TimeTaken time.Duration `json:"time_taken"`
@@ -231,6 +232,7 @@ func (bp *BotPlayer) GetMove(ctx context.Context, gameState *GameState, timeout 
 
 			var response struct {
 				Move string `json:"move"`
+				Shed bool   `json:"shed"`
 			}
 
 			err := json.Unmarshal([]byte(line), &response)
@@ -242,6 +244,7 @@ func (bp *BotPlayer) GetMove(ctx context.Context, gameState *GameState, timeout 
 			move := bp.parseMove(response.Move)
 			moveChan <- MoveResponse{
 				Move:      move,
+				Shed:      response.Shed,
 				Timeout:   false,
 				Error:     nil,
 				TimeTaken: time.Since(startTime),

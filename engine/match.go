@@ -271,8 +271,8 @@ func (m *Match) PlayTurn() error {
 		}
 	}
 
-	// Process the turn with both moves
-	m.GameState.ProcessTurn(move1Response.Move, move2Response.Move)
+	// Process the turn with both moves and shed effects
+	m.GameState.ProcessTurn(move1Response.Move, move2Response.Move, move1Response.Shed, move2Response.Shed)
 
 	// Record the turn
 	turnRecord := TurnRecord{

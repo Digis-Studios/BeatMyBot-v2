@@ -12,6 +12,25 @@ sys.stdout.reconfigure(line_buffering=True)
 sys.stderr.reconfigure(line_buffering=True)
 
 
+def should_shed(game_state):
+    """Simple test strategy for the shed mechanic.
+
+    Shed occasionally when we have enough energy, or during speed turns.
+    """
+    my_snake = game_state['snakes'][0]
+    if not my_snake['alive']:
+        return False
+
+    energy = my_snake.get('energy', 0)
+    turn = game_state.get('turn', 0)
+    speed_active = my_snake.get('speed_turns', 0) > 0
+
+    if energy <= 20:
+        return False
+
+    return speed_active or (turn % 8 == 0)
+
+
 def find_nearest_apple(head, apples):
     """Find the nearest apple using Manhattan distance
     
@@ -170,14 +189,15 @@ def main():
             
             # Decide on a move
             move = decide_move(game_state)
+            shed = should_shed(game_state)
             
-            # Output move as JSON
-            response = {"move": move}
+            # Output move as JSON, including shed flag for engine testing
+            response = {"move": move, "shed": shed}
             print(json.dumps(response), flush=True)
             
     except Exception as e:
         # In case of error, output a default move
-        print(json.dumps({"move": "UP"}), flush=True)
+        print(json.dumps({"move": "UP", "shed": False}), flush=True)
         sys.stderr.write(f"Error: {e}\n")
 
 
