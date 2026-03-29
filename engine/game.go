@@ -73,6 +73,7 @@ type Map struct {
 	Width     int        `json:"width"`
 	Height    int        `json:"height"`
 	Obstacles []Position `json:"obstacles"`
+	Trees     []Position `json:"trees"` // expansion for apple trees that spawn apples in locality
 }
 
 // NewGameState creates a new game with initial snake positions
@@ -300,6 +301,86 @@ func manhattanDistance(p1, p2 Position) int {
 		dy = -dy
 	}
 	return dx + dy
+}
+
+// SpawnApplesFromTrees spawns an apple for each tree independently within an 11x11 bounding box
+func (gs *GameState) SpawnApplesFromTrees() {
+	if gs.Map == nil || len(gs.Map.Trees) == 0 {
+		return
+	}
+
+	// Build set of occupied positions
+	occupied := make(map[Position]bool)
+	for _, snake := range gs.Snakes {
+		for _, segment := range snake.Body {
+			occupied[segment] = true
+		}
+	}
+	for _, apple := range gs.Apples {
+		occupied[Position{X: apple.X, Y: apple.Y}] = true
+	}
+	if gs.Map != nil {
+		for _, obs := range gs.Map.Obstacles {
+			occupied[obs] = true
+		}
+		for _, tree := range gs.Map.Trees {	
+			occupied[tree] = true
+		}
+	}
+
+	getValidPositions := func(center Position) []Position {
+		var valid []Position
+		minX := center.X - 5
+		if minX < 0 {
+			minX = 0
+		}
+		maxX := center.X + 5
+		if maxX >= gs.GridWidth {
+			maxX = gs.GridWidth - 1
+		}
+		minY := center.Y - 5
+		if minY < 0 {
+			minY = 0
+		}
+		maxY := center.Y + 5
+		if maxY >= gs.GridHeight {
+			maxY = gs.GridHeight - 1
+		}
+
+		for y := minY; y <= maxY; y++ {
+			for x := minX; x <= maxX; x++ {
+				pos := Position{X: x, Y: y}
+				if !occupied[pos] {
+					valid = append(valid, pos)
+				}
+			}
+		}
+		return valid
+	}
+
+	for _, tree := range gs.Map.Trees {
+		// randomly select apple type independently for each tree (should be same for all trees?)
+		rng := rand.Intn(100)
+		appleType := AppleNormal
+		if rng < 60 {
+			appleType = AppleNormal
+		} else if rng < 75 {
+			appleType = AppleGod
+		} else if rng < 90 {
+			appleType = AppleSpeed
+		} else if rng < 95 {
+			appleType = AppleSleep
+		} else {
+			appleType = ApplePoison
+		}
+
+		valid := getValidPositions(tree)
+		if len(valid) > 0 {
+			pos := valid[rand.Intn(len(valid))]
+			gs.Apples = append(gs.Apples, Apple{X: pos.X, Y: pos.Y, Type: appleType})
+			occupied[pos] = true
+		}
+	}
 }
 
 // SpawnApple spawns a new apple using zone-based balanced spawning
@@ -605,6 +686,12 @@ func (gs *GameState) ProcessTurn(move1, move2 Direction, shed1, shed2 bool) {
 		}
 	}
 
+	// Process tree apple spawns every 100 turns
+	// apple type can be selected here if want same apple for all trees
+	if gs.Turn > 0 && gs.Turn % 100 == 0 {
+		gs.SpawnApplesFromTrees()
+	}
+
 	// Check game over conditions
 	gs.checkGameOver()
 }
@@ -742,8 +829,10 @@ func (gs *GameState) Clone() *GameState {
 	if gs.Map != nil {
 		clone.Map = &Map{
 			Obstacles: make([]Position, len(gs.Map.Obstacles)),
+			Trees:     make([]Position, len(gs.Map.Trees)),
 		}
 		copy(clone.Map.Obstacles, gs.Map.Obstacles)
+		copy(clone.Map.Trees, gs.Map.Trees)
 	}
 
 	return clone
@@ -784,6 +873,11 @@ func (gs *GameState) String() string {
 		for _, obs := range gs.Map.Obstacles {
 			if obs.Y >= 0 && obs.Y < gs.GridHeight && obs.X >= 0 && obs.X < gs.GridWidth {
 				grid[obs.Y][obs.X] = '#'
+			}
+		}
+		for _, tree := range gs.Map.Trees {
+			if tree.Y >= 0 && tree.Y < gs.GridHeight && tree.X >= 0 && tree.X < gs.GridWidth {
+				grid[tree.Y][tree.X] = 'T'
 			}
 		}
 	}
