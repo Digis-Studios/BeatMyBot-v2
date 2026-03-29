@@ -27,6 +27,7 @@ class MapBuilder:
         self.grid_height = grid_height
         self.cell_size = cell_size
         self.obstacles = set()
+        self.trees = set() # apple trees for apple spawning
         
         # Window setup
         self.panel_width = 200
@@ -41,6 +42,7 @@ class MapBuilder:
         
         self.dragging = False
         self.drag_mode = None  # 'add' or 'remove'
+        self.brush_type = 'obstacle'  # 'obstacle' or 'tree'
         self.filename = "new_map"
         
         # Button areas
@@ -50,6 +52,7 @@ class MapBuilder:
             'clear': pygame.Rect(grid_width * cell_size + 10, 110, 180, 35),
             'mirror_h': pygame.Rect(grid_width * cell_size + 10, 155, 85, 35),
             'mirror_v': pygame.Rect(grid_width * cell_size + 105, 155, 85, 35),
+            'brush': pygame.Rect(grid_width * cell_size + 10, 200, 180, 35),
         }
     
     def get_cell_from_mouse(self, pos):
@@ -60,43 +63,68 @@ class MapBuilder:
         return (x // self.cell_size, y // self.cell_size)
     
     def toggle_obstacle(self, grid_x, grid_y):
-        """Toggle obstacle at grid position"""
+        """Toggle cell at grid position based on brush type"""
         pos = (grid_x, grid_y)
-        if pos in self.obstacles:
-            self.obstacles.remove(pos)
+        target_set = self.obstacles if self.brush_type == 'obstacle' else self.trees
+        other_set = self.trees if self.brush_type == 'obstacle' else self.obstacles
+        
+        # Remove from other set if present
+        if pos in other_set:
+            other_set.remove(pos)
+
+        if pos in target_set:
+            target_set.remove(pos)
             return 'remove'
         else:
-            self.obstacles.add(pos)
+            target_set.add(pos)
             return 'add'
     
     def add_obstacle(self, grid_x, grid_y):
-        """Add obstacle at grid position"""
+        """Add cell at grid position based on brush type"""
         if 0 <= grid_x < self.grid_width and 0 <= grid_y < self.grid_height:
-            self.obstacles.add((grid_x, grid_y))
+            pos = (grid_x, grid_y)
+            target_set = self.obstacles if self.brush_type == 'obstacle' else self.trees
+            other_set = self.trees if self.brush_type == 'obstacle' else self.obstacles
+            
+            if pos in other_set:
+                other_set.remove(pos)
+            target_set.add(pos)
     
     def remove_obstacle(self, grid_x, grid_y):
-        """Remove obstacle at grid position"""
+        """Remove cell at grid position based on brush type"""
         pos = (grid_x, grid_y)
-        if pos in self.obstacles:
-            self.obstacles.discard(pos)
+        target_set = self.obstacles if self.brush_type == 'obstacle' else self.trees
+        if pos in target_set:
+            target_set.discard(pos)
     
     def clear_all(self):
-        """Clear all obstacles"""
+        """Clear all obstacles and trees"""
         self.obstacles.clear()
+        self.trees.clear()
     
     def mirror_horizontal(self):
-        """Mirror obstacles horizontally"""
+        """Mirror obstacles and trees horizontally"""
         new_obstacles = set()
         for x, y in self.obstacles:
             new_obstacles.add((self.grid_width - 1 - x, y))
         self.obstacles.update(new_obstacles)
+        
+        new_trees = set()
+        for x, y in self.trees:
+            new_trees.add((self.grid_width - 1 - x, y))
+        self.trees.update(new_trees)
     
     def mirror_vertical(self):
-        """Mirror obstacles vertically"""
+        """Mirror obstacles and trees vertically"""
         new_obstacles = set()
         for x, y in self.obstacles:
             new_obstacles.add((x, self.grid_height - 1 - y))
         self.obstacles.update(new_obstacles)
+        
+        new_trees = set()
+        for x, y in self.trees:
+            new_trees.add((x, self.grid_height - 1 - y))
+        self.trees.update(new_trees)
     
     def save_map(self, filename):
         """Save map to JSON file"""
@@ -106,10 +134,12 @@ class MapBuilder:
             filepath += '.json'
         
         obstacle_list = [{"x": x, "y": y} for x, y in sorted(self.obstacles)]
+        tree_list = [{"x": x, "y": y} for x, y in sorted(self.trees)]
         data = {
             "width": self.grid_width,
             "height": self.grid_height,
-            "obstacles": obstacle_list
+            "obstacles": obstacle_list,
+            "trees": tree_list
         }
         
         with open(filepath, 'w') as f:
@@ -139,7 +169,11 @@ class MapBuilder:
                 
                 self.obstacles.clear()
                 for obs in data.get('obstacles', []):
-                    self.add_obstacle(obs['x'], obs['y'])
+                    self.obstacles.add((obs['x'], obs['y']))
+                
+                self.trees.clear()
+                for tree in data.get('trees', []):
+                    self.trees.add((tree['x'], tree['y']))
             print(f"Loaded map from: {filepath}")
             return True
         except FileNotFoundError:
@@ -160,6 +194,8 @@ class MapBuilder:
                 # Draw cell
                 if (x, y) in self.obstacles:
                     pygame.draw.rect(self.screen, OBSTACLE_COLOR, rect)
+                elif (x, y) in self.trees:
+                    pygame.draw.rect(self.screen, GREEN, rect)
                 else:
                     pygame.draw.rect(self.screen, WHITE, rect)
                 
@@ -189,10 +225,14 @@ class MapBuilder:
         self.draw_button('mirror_h', self.buttons['mirror_h'], 'Mirror H', BLUE)
         self.draw_button('mirror_v', self.buttons['mirror_v'], 'Mirror V', BLUE)
         
+        brush_text = 'Brush: Obstacle' if self.brush_type == 'obstacle' else 'Brush: Tree'
+        brush_color = OBSTACLE_COLOR if self.brush_type == 'obstacle' else GREEN
+        self.draw_button('brush', self.buttons['brush'], brush_text, brush_color)
+        
         # Draw obstacle count
-        count_text = f"Obstacles: {len(self.obstacles)}"
+        count_text = f"Obs: {len(self.obstacles)} | Trees: {len(self.trees)}"
         text_surface = self.small_font.render(count_text, True, WHITE)
-        self.screen.blit(text_surface, (self.grid_width * self.cell_size + 10, 210))
+        self.screen.blit(text_surface, (self.grid_width * self.cell_size + 10, 245))
         
         # Draw instructions at bottom
         instructions = [
@@ -229,6 +269,9 @@ class MapBuilder:
                 
                 elif name == 'mirror_v':
                     self.mirror_vertical()
+                
+                elif name == 'brush':
+                    self.brush_type = 'tree' if self.brush_type == 'obstacle' else 'obstacle'
                 
                 return True
         return False
@@ -291,7 +334,7 @@ class MapBuilder:
         pygame.quit()
         
         # Ask to save before exit
-        if self.obstacles:
+        if self.obstacles or self.trees:
             save = input("\nSave map before exit? (y/n): ").strip().lower()
             if save == 'y':
                 filename = input("Enter filename (without .json): ").strip() or self.filename
