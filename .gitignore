@@ -40,3 +40,27 @@ Thumbs.db
 **/.gradle/
 **/build/
 **/target/
+
+# --- Unity Visualizer ---
+Unity\ Visualiser/BeatMyBotV2/[Ll]ibrary/
+Unity\ Visualiser/BeatMyBotV2/[Tt]emp/
+Unity\ Visualiser/BeatMyBotV2/[Oo]bj/
+Unity\ Visualiser/BeatMyBotV2/[Bb]uild/
+Unity\ Visualiser/BeatMyBotV2/[Bb]uilds/
+Unity\ Visualiser/BeatMyBotV2/[Ll]ogs/
+Unity\ Visualiser/BeatMyBotV2/[Uu]ser[Ss]ettings/
+
+# --- Unity & IDE Generated Files ---
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
