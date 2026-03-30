@@ -28,10 +28,25 @@ const (
 	ApplePoison AppleType = "POISON" // Poison apple: -1 length and -1 score
 )
 
+// TreeType represents the type of tree
+type TreeType string
+
+const (
+	TreeNormal TreeType = "NORMAL" // Regular tree: spawns normal apples
+	TreeGolden TreeType = "GOLDEN" // Golden tree: spawns special apples (GOD, SPEED, SLEEP) at 100-turn intervals
+)
+
 // Position represents a coordinate on the grid
 type Position struct {
 	X int `json:"x"`
 	Y int `json:"y"`
+}
+
+// Tree represents a tree on the game grid
+type Tree struct {
+	X    int      `json:"x"`
+	Y    int      `json:"y"`
+	Type TreeType `json:"type"` // Tree type: NORMAL or GOLDEN
 }
 
 // Apple represents an apple on the game grid
@@ -52,7 +67,7 @@ type Snake struct {
 	Score       int        `json:"score"`        // Score from eating apples
 	SpeedTurns  int        `json:"speed_turns"`  // Remaining turns with 2x speed
 	SleepTurns  int        `json:"sleep_turns"`  // Remaining turns frozen
-	Energy      int        `json:"energy"`       // Energy depletes by 1 per turn, eating apple restores to 60
+	Energy      int        `json:"energy"`       // Energy depletes by 1 per turn, eating apple restores to 100
 	DeathReason string     `json:"death_reason"` // Reason for death: "wall", "self", "body", "head-to-head", "hunger", "obstacle"
 }
 
@@ -74,7 +89,50 @@ type Map struct {
 	Height    int        `json:"height"`
 	Obstacles []Position `json:"obstacles"`
 	ShedWalls []Position `json:"shed_walls,omitempty"`
-	Trees     []Position `json:"trees"` // expansion for apple trees that spawn apples in locality
+	Trees     []Tree    `json:"trees"` // Trees that spawn apples; first tree (if present) is golden if type is GOLDEN
+}
+
+// UnmarshalJSON provides backward compatibility for maps with trees as Position objects
+func (m *Map) UnmarshalJSON(data []byte) error {
+	type Alias Map
+	aux := &struct {
+		Trees interface{} `json:"trees"` // Can be []Position or []Tree
+		*Alias
+	}{
+		Alias: (*Alias)(m),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Handle backward compatibility: trees can be provided as Position objects {x, y}
+	// Convert them to Tree objects with default NORMAL type
+	if aux.Trees != nil {
+		// Try to unmarshal as []interface{} first to check structure
+		treesRaw, err := json.Marshal(aux.Trees)
+		if err != nil {
+			return err
+		}
+
+		// Try to unmarshal as Tree array
+		var treesArray []Tree
+		if err := json.Unmarshal(treesRaw, &treesArray); err == nil {
+			m.Trees = treesArray
+		} else {
+			// Fall back to Position array and convert to Tree
+			var posArray []Position
+			if err := json.Unmarshal(treesRaw, &posArray); err != nil {
+				return err
+			}
+			m.Trees = make([]Tree, len(posArray))
+			for i, pos := range posArray {
+				m.Trees[i] = Tree{X: pos.X, Y: pos.Y, Type: TreeNormal}
+			}
+		}
+	}
+
+	return nil
 }
 
 // NewGameState creates a new game with initial snake positions
@@ -104,7 +162,7 @@ func NewGameState(width, height int, m *Map) *GameState {
 		Score:       0,
 		SpeedTurns:  0,
 		SleepTurns:  0,
-		Energy:      60,
+		Energy:      100,
 		DeathReason: "",
 	}
 
@@ -122,14 +180,17 @@ func NewGameState(width, height int, m *Map) *GameState {
 		Score:       0,
 		SpeedTurns:  0,
 		SleepTurns:  0,
-		Energy:      60,
+		Energy:      100,
 		DeathReason: "",
 	}
 
-	// Spawn initial apples
-	gs.SpawnApple()
-	gs.SpawnApple()
-	gs.SpawnApple()
+	// Original zone-based initial spawning disabled.
+	// gs.SpawnApple()
+	// gs.SpawnApple()
+	// gs.SpawnApple()
+
+	// Tree-based spawning: one apple attempt per tree at match start.
+	gs.SpawnApplesFromTrees()
 
 	return gs
 }
@@ -311,7 +372,9 @@ func manhattanDistance(p1, p2 Position) int {
 	return dx + dy
 }
 
-// SpawnApplesFromTrees spawns an apple for each tree independently within an 11x11 bounding box
+// SpawnApplesFromTrees spawns apples from trees
+// Regular trees (NORMAL type) spawn 1 apple in an 11x11 bounding box
+// Golden tree (GOLDEN type, first tree if present) spawns 2 diagonally symmetric special apples every 100 turns
 func (gs *GameState) SpawnApplesFromTrees() {
 	if gs.Map == nil || len(gs.Map.Trees) == 0 {
 		return
@@ -332,7 +395,7 @@ func (gs *GameState) SpawnApplesFromTrees() {
 			occupied[obs] = true
 		}
 		for _, tree := range gs.Map.Trees {	
-			occupied[tree] = true
+			occupied[Position{X: tree.X, Y: tree.Y}] = true
 		}
 		for _, shedWall := range gs.Map.ShedWalls {
 			occupied[shedWall] = true
@@ -369,29 +432,94 @@ func (gs *GameState) SpawnApplesFromTrees() {
 		return valid
 	}
 
+	// Handle trees based on their type
 	for _, tree := range gs.Map.Trees {
-		// randomly select apple type independently for each tree (should be same for all trees?)
-		rng := rand.Intn(100)
-		appleType := AppleNormal
-		if rng < 60 {
-			appleType = AppleNormal
-		} else if rng < 75 {
-			appleType = AppleGod
-		} else if rng < 90 {
-			appleType = AppleSpeed
-		} else if rng < 95 {
-			appleType = AppleSleep
+		if tree.Type == TreeGolden {
+			// Spawn special apples from golden tree every 100 turns (turn 100, 200, 300, ...)
+			if gs.Turn > 0 && gs.Turn%100 == 0 {
+				gs.spawnGoldenTreeApples(Position{X: tree.X, Y: tree.Y}, occupied)
+			}
 		} else {
-			appleType = ApplePoison
-		}
+			// Regular tree: spawn one normal apple per tree
+			// Randomly select apple type for regular tree (Always normal)
+			appleType := AppleNormal
 
-		valid := getValidPositions(tree)
-		if len(valid) > 0 {
-			pos := valid[rand.Intn(len(valid))]
-			gs.Apples = append(gs.Apples, Apple{X: pos.X, Y: pos.Y, Type: appleType})
-			occupied[pos] = true
+			center := Position{X: tree.X, Y: tree.Y}
+			valid := getValidPositions(center)
+			if len(valid) > 0 {
+				pos := valid[rand.Intn(len(valid))]
+				gs.Apples = append(gs.Apples, Apple{X: pos.X, Y: pos.Y, Type: appleType, SpawnedAt: gs.Turn})
+				occupied[pos] = true
+			}
 		}
 	}
+}
+
+// spawnGoldenTreeApples spawns 2 diagonally symmetric special apples from the golden tree
+func (gs *GameState) spawnGoldenTreeApples(treePos Position, occupied map[Position]bool) {
+	// Possible special apple types for golden tree
+	specialApples := []AppleType{AppleGod, AppleSpeed, AppleSleep}
+
+	// Find valid positions around the golden tree (within 11x11 box)
+	// Only include positions where both the position and its diametrically opposite position are valid and not occupied
+	getValidPositions := func(center Position, exclude map[Position]bool) []Position {
+		var valid []Position
+		minX := center.X - 5
+		if minX < 0 {
+			minX = 0
+		}
+		maxX := center.X + 5
+		if maxX >= gs.GridWidth {
+			maxX = gs.GridWidth - 1
+		}
+		minY := center.Y - 5
+		if minY < 0 {
+			minY = 0
+		}
+		maxY := center.Y + 5
+		if maxY >= gs.GridHeight {
+			maxY = gs.GridHeight - 1
+		}
+
+		for y := minY; y <= maxY; y++ {
+			for x := minX; x <= maxX; x++ {
+				pos := Position{X: x, Y: y}
+				if !exclude[pos] {
+					// Check if the diametrically opposite position is also valid and not occupied
+					dx := pos.X - center.X
+					dy := pos.Y - center.Y
+					oppositePos := Position{X: center.X - dx, Y: center.Y - dy}
+
+					if oppositePos.X >= 0 && oppositePos.X < gs.GridWidth &&
+						oppositePos.Y >= 0 && oppositePos.Y < gs.GridHeight &&
+						!exclude[oppositePos] {
+						valid = append(valid, pos)
+					}
+				}
+			}
+		}
+		return valid
+	}
+
+	validPositions := getValidPositions(treePos, occupied)
+	if len(validPositions) < 1 {
+		// Not enough space for 2 apples
+		return
+	}
+
+	// Select first apple randomly from positions where opposite is also valid
+	pos1 := validPositions[rand.Intn(len(validPositions))]
+	apple1Type := specialApples[rand.Intn(len(specialApples))]
+
+	// Calculate diagonal symmetric position from tree center
+	dx := pos1.X - treePos.X
+	dy := pos1.Y - treePos.Y
+	pos2 := Position{X: treePos.X - dx, Y: treePos.Y - dy}
+
+	// Both positions are guaranteed to be valid since we filtered them above
+	apple2Type := specialApples[rand.Intn(len(specialApples))]
+	gs.Apples = append(gs.Apples, Apple{X: pos1.X, Y: pos1.Y, Type: apple1Type, SpawnedAt: gs.Turn})
+	gs.Apples = append(gs.Apples, Apple{X: pos2.X, Y: pos2.Y, Type: apple2Type, SpawnedAt: gs.Turn})
 }
 
 // SpawnApple spawns a new apple using zone-based balanced spawning
@@ -419,7 +547,7 @@ func (gs *GameState) SpawnApple() {
 			occupied[obs] = true
 		}
 		for _, tree := range gs.Map.Trees {
-			occupied[tree] = true
+			occupied[Position{X: tree.X, Y: tree.Y}] = true
 		}
 		for _, shedWall := range gs.Map.ShedWalls {
 			occupied[shedWall] = true
@@ -643,9 +771,9 @@ func (gs *GameState) ProcessTurn(move1, move2 Direction, shed1, shed2 bool) {
 		}
 	}
 
-	// Convert normal apples to poison after 15 turns
+	// Convert normal apples to poison after 25 turns
 	for i := range gs.Apples {
-		if gs.Apples[i].Type == AppleNormal && (gs.Turn - gs.Apples[i].SpawnedAt) >= 15 {
+		if gs.Apples[i].Type == AppleNormal && (gs.Turn - gs.Apples[i].SpawnedAt) >= 25 {
 			gs.Apples[i].Type = ApplePoison
 		}
 	}
@@ -659,7 +787,8 @@ func (gs *GameState) ProcessTurn(move1, move2 Direction, shed1, shed2 bool) {
 		eaten, appleType := gs.CheckAppleEaten(1)
 		if eaten {
 			gs.ApplyAppleEffect(1, appleType)
-			gs.SpawnApple()
+			// Original zone-based respawn disabled.
+			// gs.SpawnApple()
 			snake1AteApple = true
 		}
 	}
@@ -668,7 +797,8 @@ func (gs *GameState) ProcessTurn(move1, move2 Direction, shed1, shed2 bool) {
 		eaten, appleType := gs.CheckAppleEaten(2)
 		if eaten {
 			gs.ApplyAppleEffect(2, appleType)
-			gs.SpawnApple()
+			// Original zone-based respawn disabled.
+			// gs.SpawnApple()
 			snake2AteApple = true
 		}
 	}
@@ -703,9 +833,9 @@ func (gs *GameState) ProcessTurn(move1, move2 Direction, shed1, shed2 bool) {
 		}
 	}
 
-	// Process tree apple spawns every 100 turns
+	// Process tree apple spawns every 25 turns
 	// apple type can be selected here if want same apple for all trees
-	if gs.Turn > 0 && gs.Turn % 100 == 0 {
+	if gs.Turn > 0 && gs.Turn % 25 == 0 {
 		gs.SpawnApplesFromTrees()
 	}
 
@@ -719,8 +849,8 @@ func (gs *GameState) ApplyAppleEffect(snakeID int, appleType AppleType) {
 	otherSnakeID := 3 - snakeID // 1 -> 2, 2 -> 1
 	otherSnake := gs.Snakes[otherSnakeID-1]
 
-	// Restore energy to 60 when eating any apple
-	snake.Energy = 60
+	// Restore energy to 100 when eating any apple
+	snake.Energy = 100
 
 	switch appleType {
 	case AppleNormal:
@@ -781,10 +911,10 @@ func (gs *GameState) ApplyAppleEffect(snakeID int, appleType AppleType) {
 	}
 }
 
-// applyShedEffect handles the shed ability: halves energy and places walls at vacated positions
+// applyShedEffect handles the shed ability: costs 5 energy and places walls at vacated positions
 func (gs *GameState) applyShedEffect(snake *Snake, positionsBeforeMove []Position) {
-	// Halve the energy
-	snake.Energy = snake.Energy / 2
+	// Cost 5 energy
+	snake.Energy = snake.Energy - 5
 
 	// Find positions that were occupied before but are not occupied now
 	currentPositions := make(map[string]bool)
@@ -846,9 +976,11 @@ func (gs *GameState) Clone() *GameState {
 	// Clone map
 	if gs.Map != nil {
 		clone.Map = &Map{
+			Width:     gs.Map.Width,
+			Height:    gs.Map.Height,
 			Obstacles: make([]Position, len(gs.Map.Obstacles)),
 			ShedWalls: make([]Position, len(gs.Map.ShedWalls)),
-			Trees:     make([]Position, len(gs.Map.Trees)),
+			Trees:     make([]Tree, len(gs.Map.Trees)),
 		}
 		copy(clone.Map.Obstacles, gs.Map.Obstacles)
 		copy(clone.Map.ShedWalls, gs.Map.ShedWalls)

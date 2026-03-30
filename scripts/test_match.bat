@@ -12,7 +12,7 @@ set BOT2=%~2
 if "%BOT2%"=="" set BOT2=example_python
 
 set MAP=%~3
-if "%MAP%"=="" set MAP=maps/large.json
+if "%MAP%"=="" set MAP=maps/lot-of-apples.json
 
 echo ========================================
 echo   Snake Game Engine - Quick Test

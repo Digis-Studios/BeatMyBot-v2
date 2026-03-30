@@ -25,7 +25,7 @@ def should_shed(game_state):
     turn = game_state.get('turn', 0)
     speed_active = my_snake.get('speed_turns', 0) > 0
 
-    if energy <= 20:
+    if energy <= 40:
         return False
 
     return speed_active or (turn % 8 == 0)
@@ -101,7 +101,7 @@ def is_safe_move(head, move, grid_width, grid_height, obstacles):
 
 
 def get_all_obstacles(game_state):
-    """Get all obstacle positions (all snake bodies)"""
+    """Get all obstacle positions (snake bodies, map obstacles, trees, shed walls)"""
     obstacles = []
     for snake in game_state['snakes']:
         # Include all body segments
@@ -111,6 +111,12 @@ def get_all_obstacles(game_state):
     if map_data:
         map_obs = map_data.get('obstacles', [])
         obstacles.extend(map_obs)
+        # Include trees as obstacles
+        trees = map_data.get('trees', [])
+        obstacles.extend(trees)
+        # Include shed walls as obstacles
+        shed_walls = map_data.get('shed_walls', [])
+        obstacles.extend(shed_walls)
     return obstacles
 
 

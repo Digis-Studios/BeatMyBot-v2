@@ -17,11 +17,12 @@ class MatchSeriesManager:
     def __init__(self, workspace_root):
         self.workspace_root = Path(workspace_root)
         self.maps = [
-            "maps/checkered.json",
-            "maps/ez.json",
-            "maps/gg.json",
-            "maps/pockets.json",
-            "maps/trisul.json"
+            
+            "maps/framed.json",
+            "maps/headphones.json",
+            "maps/large.json",
+            "maps/sssss.json",
+            "maps/x.json"
         ]
         self.replays_dir = self.workspace_root / "replays"
         
