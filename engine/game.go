@@ -73,6 +73,7 @@ type Map struct {
 	Width     int        `json:"width"`
 	Height    int        `json:"height"`
 	Obstacles []Position `json:"obstacles"`
+	ShedWalls []Position `json:"shed_walls,omitempty"`
 	Trees     []Position `json:"trees"` // expansion for apple trees that spawn apples in locality
 }
 
@@ -264,6 +265,13 @@ func (gs *GameState) CheckCollision(snakeID int) bool {
 				return true
 			}
 		}
+		for _, tree := range gs.Map.Trees {
+			if head.X == tree.X && head.Y == tree.Y {
+				snake.Alive = false
+				snake.DeathReason = "obstacle"
+				return true
+			}
+		}
 	}
 
 	return false
@@ -325,6 +333,9 @@ func (gs *GameState) SpawnApplesFromTrees() {
 		}
 		for _, tree := range gs.Map.Trees {	
 			occupied[tree] = true
+		}
+		for _, shedWall := range gs.Map.ShedWalls {
+			occupied[shedWall] = true
 		}
 	}
 
@@ -406,6 +417,12 @@ func (gs *GameState) SpawnApple() {
 	if gs.Map != nil {
 		for _, obs := range gs.Map.Obstacles {
 			occupied[obs] = true
+		}
+		for _, tree := range gs.Map.Trees {
+			occupied[tree] = true
+		}
+		for _, shedWall := range gs.Map.ShedWalls {
+			occupied[shedWall] = true
 		}
 	}
 
@@ -789,6 +806,7 @@ func (gs *GameState) applyShedEffect(snake *Snake, positionsBeforeMove []Positio
 			}
 			if !isAlreadyObstacle {
 				gs.Map.Obstacles = append(gs.Map.Obstacles, oldPos)
+				gs.Map.ShedWalls = append(gs.Map.ShedWalls, oldPos)
 			}
 		}
 	}
@@ -829,9 +847,11 @@ func (gs *GameState) Clone() *GameState {
 	if gs.Map != nil {
 		clone.Map = &Map{
 			Obstacles: make([]Position, len(gs.Map.Obstacles)),
+			ShedWalls: make([]Position, len(gs.Map.ShedWalls)),
 			Trees:     make([]Position, len(gs.Map.Trees)),
 		}
 		copy(clone.Map.Obstacles, gs.Map.Obstacles)
+		copy(clone.Map.ShedWalls, gs.Map.ShedWalls)
 		copy(clone.Map.Trees, gs.Map.Trees)
 	}
 
