@@ -1,18 +1,7 @@
-## 📢 Winner Announcement
+# Beat my Bot v2 - Game Ssspecifications
 
-Well Played to all the participants of Beat My Bot v1! But Alas, there can only be one winner. 
-
-We had a tough match up in the finals: **GlitchLabs** by Ruchit Jagodar vs **GodBot** by Akash Gupta and Naveen Pal. And the winner was decided by a margin of just 1 match. The results of Beat My Bot v1 are:
-
-Winner: 🏆  GlitchLabs by Ruchit Jagodara 🏆 
-Runner Ups: 🥈GodBot by Akash Gupta and Naveen Pal 🥈
-
-You can see the replays of the tournament matches in [Tournament Replays](tournament-replays)
-
-# Beat my Bot v1 - Game Ssspecifications
-
-Welcome to the first ever **Beat my Bot** challenge.
-We have made a game engine for the simple game of 2-player snake. Now it is your job to write a bot to play the game optimally! Your bot must compete against others on the grid-based arena, collecting apples, avoiding obstacles, and outmaneuvering your opponent. Read this doc to understand the game and what you have to do in detail.
+Welcome to the second version of **Beat my Bot** challenge.
+We have made another game engine for a modified version of 2-player snake. Now it is your job to write a bot to play the game optimally! Your bot must compete against others on the grid-based arena, collecting apples, avoiding obstacles, shedding skin, and outmaneuvering your opponent. Read this doc to understand the game and what you have to do in detail.
 
 ## But what is Beat My Bot?
 
@@ -23,7 +12,7 @@ response cycle as shown in the image.
 ![what is bmb](media/what.png)
 
 The engine sends the current game state (JSON) to both bots simultaneously. Your bot must
-analyze the board, apples, opponent position, and obstacles, then responds with its move
+analyze the board, apples, trees, opponent position, and obstacles, then responds with its move
 decision (UP, DOWN, LEFT, or RIGHT). The engine executes both moves and updates the game
 world. This cycle repeats until one snake dies or 500 turns complete.
 
@@ -41,12 +30,10 @@ You can participate **individually** or in a **team of maximum 2 members**. Each
 
 ## Timeline
 
-- **09/02** - Start of Competition. The codebase and gamerules will be shared. There will be an orientation at night.
-- **11/02** - Sprint 1 submission! You can submit your code to us for testing against other bots. You will get back the replay files of your battles against other submissions by the next day. This will help you understand the meta of the game and you can try to deduce what others are developing.
-- **13/02** - Sprint 2 submission!
-- **15/02 (~~10 AM~~ 12 noon)** - Sprint 3 submission!
-- **15/02 (6 PM)** - Final submissions. Note: We require you to have submitted your bot to atleast one of the Sprints to count your final submission.
-- **15/02 (10 PM)** - We will gather to watch how the tournament plays out!
+- **03/04 11:00PM** - Start of Competition. The codebase and gamerules will be shared. There will be an orientation at night.
+- **04/04 10:00PM** - Sprint submission! You can submit your code to us for testing against other bots. You will get back the replay files of your battles against other submissions by midnight. This will help you understand the meta of the game and you can try to deduce what others are developing.
+- **05/04 11:00AM** - Final submissions. (submission in sprint is not mandatory)
+- **05/04 3:00PM** - We will gather to watch how the tournament plays out!
 
 ---
 
@@ -56,7 +43,7 @@ So now that you understand the what the competition is about lets is dive into t
 
 ### Basic Mechanics
 
-The game is played on a square grid which varies from 20x20 to 40x40. Each player controls one snake and both snakes move simultaneously each turn. Your bot has **500ms** (judge's-laptop) to respond each turn. To simulate it on your laptop, you can calibrate ([calibrate.py](tools/calibrate.py)) and scale by comparing with [reference](tools/reference_calibrate.json).
+The game is played on a square grid which varies from 25x25 to 45x45. Each player controls one snake and both snakes move simultaneously each turn. Your bot has **500ms** (judge's-laptop) to respond each turn. To simulate it on your laptop, you can calibrate ([calibrate.py](tools/calibrate.py)) and scale by comparing with [reference](tools/reference_calibrate.json).
 
 ### Winning Conditions
 
@@ -73,34 +60,55 @@ Your snake can move in four **directions**: UP, DOWN, LEFT, or RIGHT. However, *
 
 #### Energy Sssystem
 
-Snake must maintain its energy level above 0. It begins with a starting energy of 60. Every turn, your snake experiences **energy depletion** at of 1 point per turn. The good news is that eating **any** apple restores your energy back to 60, regardless of the apple type. However, be warned: if your energy reaches 0 your snake will die from hunger and lose.
+Snake must maintain its energy level above 0. It begins with a starting energy of 100. Every turn, your snake experiences **energy depletion** of 1 point per turn. The good news is that eating **any** apple restores your energy back to 100, regardless of the apple type. However, be warned: if your energy reaches 0 your snake will die from hunger and lose.
+
+#### Ssshed Mechanic
+
+Your snake can shed its skin strategically to create walls. Shed walls are permanent obstacles for the remainder of the match for both the snakes.
+
+- **Action**: Include `"shed": true` in your move JSON to activate shedding
+- **Cost**: 5 energy points per shed activation
+- **Effect**: Creates walls at all positions the snake vacated during that turn (can be 2 if speed is active, can be 0 if frozen or length increases in next turn)
 
 #### Death
 
 Your snake dies if it:
 
-- **Hits a wall** - Moves outside the grid boundaries (x < 0, x >= width, y < 0, or y >= height)
+- **Hits the edge** - Moves outside the grid boundaries (x < 0, x >= width, y < 0, or y >= height)
 - **Hits itself** - Your head collides with any segment of your own body
 - **Hits opponent's body** - Your head collides with any part of the opponent's snake (except in head-to-head)
-- **Hits a map obstacle** - Moving into a static obstacle placed on the map
+- **Hits a map obstacle** - Moving into a static obstacle or a shed wall placed on the map 
 - **Starves** - Your energy reaches 0 from not eating apples
 - **Loses head-to-head collision** - When both snake heads move to the same position the longer snake survives and the shorter snake dies. If snakes are of equal length, both snakes die and the match is declared a draw.
 
 ### Apples
 
-Apples spawn on empty cells. You may get special apples which grant various effects when eaten. All apples restore energy to 60.
+Apples spawn from trees on the game map. You may get special apples from special trees which grant various effects when eaten. All apples restore energy to 100.
 
-| Type | Symbol | Effect | Score | Spawn Rate |
-|------|--------|--------|-------|------------|
-| **NORMAL** | `A` | Grow by 1 segment | +1 | 60% |
-| **GOD** | `D` | Grow by 3 segments | +3 | 15% |
-| **SPEED** | `S` | 2 steps/turn for 5 turns. The 2 steps will be in same direction | +1 | 15% |
-| **SLEEP** | `Z` | Freeze **opponent** for 5 turns | +1 | 5% |
-| **POISON** | `P` | Shrink by 1 segment | -1 | 5% |
+| Type | Symbol | Effect | Score | Source |
+|------|--------|--------|-------|--------|
+| **NORMAL** | `A` | Grow by 1 segment | +1 | Regular trees |
+| **GOD** | `D` | Grow by 3 segments | +3 | Golden trees |
+| **SPEED** | `S` | 2 steps/turn for 5 turns. The 2 steps will be in same direction | +1 | Golden trees |
+| **SLEEP** | `Z` | Freeze **opponent** for 5 turns | +1 | Golden trees |
+| **POISON** | `P` | Shrink by 1 segment | -1 | Normal Apples Rot into Poison Apples|
 
-### Apple Sssspawning
+### Apple Ssssspawning - Tree-Based System
 
-We use a **zone-based spawning system** to ensure fair apple distribution. The grid is dynamically divided into three zones based on Manhattan distance from each snake's head: positions closer to your snake, positions closer to your opponent's snake, and neutral positions (within 3 tiles of being equidistant). When a new apple needs to spawn, the engine counts how many apples currently exist in each zone and spawns the new apple in the zone with the *fewest apples* on a *random* empty location. This reduces luck-based advantages. The zones shift dynamically as snakes move around the board, continuously adapting to maintain balance. Think about ways to use this to your advantage! NOTE: Apples will never spawn on snake bodies, map obstacles, or existing apples - only on empty cells.
+Apples spawn from trees placed on the map:
+
+**Regular Trees (NORMAL):**
+- Spawn 1 NORMAL apple per tree every 25 turns. Also spawn apples at start of game (Turn 0).
+- Apple spawns in an 11×11 bounding box with tree at center.
+- NORMAL apples decay into POISON apples after 25 turns.
+
+**Golden Trees (GOLDEN):**
+- Spawn special apples every 100 turns (at turns 100, 200, 300, ...). They donot spawn apples at start of game.
+- Spawn 2 apples symmetrically around the tree (diagonally opposite positions).
+- Each apple is randomly chosen from: GOD, SPEED, or SLEEP types.
+
+
+Apples will never spawn on snake bodies, map obstacles, trees, or existing apples - only on empty cells.
 
 ## About your Bot
 
@@ -136,13 +144,14 @@ The game state is sent from your bot's perspective. Your snake is always at inde
 
 #### Output (Your Move)
 
-Your bot must respond with a JSON object containing your move:
+Your bot must respond with a JSON object containing your move and optional shed action:
 
 ```json
-{"move": "UP"}
+{"move": "UP", "shed": false}
 ```
 
-Valid moves: `"UP"`, `"DOWN"`, `"LEFT"`, `"RIGHT"`
+Valid moves: `"UP"`, `"DOWN"`, `"LEFT"`, `"RIGHT"`  
+Shed: `true` or `false` (optional, defaults to false)
 
 ### Game Ssstate Fields Explained
 
@@ -158,7 +167,7 @@ Valid moves: `"UP"`, `"DOWN"`, `"LEFT"`, `"RIGHT"`
   "score": 3,                 // Total score from apples
   "speed_turns": 0,           // Remaining turns with 2x speed
   "sleep_turns": 0,           // Remaining turns frozen
-  "energy": 57,               // Current energy (dies at 0)
+  "energy": 77,              // Current energy (dies at 0, max 100)
   "death_reason": ""          // Reason if dead, not useful to bot :)
 }
 ```
@@ -179,9 +188,24 @@ Valid moves: `"UP"`, `"DOWN"`, `"LEFT"`, `"RIGHT"`
 {
   "width": 20,                // Grid width
   "height": 20,               // Grid height
-  "obstacles": [...]          // Static obstacle positions
+  "obstacles": [...],         // Includes all obstacle positions (static + shed walls)
+  "trees": [...],             // Trees that spawn apples
+  "shed_walls": [...]         // Walls created by shedding snakes
 }
 ```
+
+##### Tree Object
+
+Trees are static entities that spawn apples. They are part of the `map` object:
+
+```json
+{
+  "x": 5,                     // X coordinate
+  "y": 8,                     // Y coordinate
+  "type": "GOLDEN"            // NORMAL or GOLDEN
+}
+```
+
 
 #### Technical Specifications
 
