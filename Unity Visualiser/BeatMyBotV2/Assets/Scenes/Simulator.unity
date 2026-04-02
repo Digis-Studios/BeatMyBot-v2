@@ -4673,6 +4673,8 @@ MonoBehaviour:
   shedWallPrefab: {fileID: 3862670830590159470, guid: a7519082d121c1f4fbda340a2a3ceeaa, type: 3}
   player1Prefab: {fileID: 3862670830590159470, guid: 9e7794f1f1ce8ff4fadeec6ebaa901fb, type: 3}
   player2Prefab: {fileID: 3862670830590159470, guid: 14809034536efac48b87b03e70009428, type: 3}
+  player1HeadPrefab: {fileID: 3862670830590159470, guid: f2734fd483cb0aa41b02d58c1dafb290, type: 3}
+  player2HeadPrefab: {fileID: 3862670830590159470, guid: 2f205e6fc3db39244b7966b99debfc8a, type: 3}
   applePrefab: {fileID: 9171952351031885183, guid: 9df922d8501df9d409b4e0cb332f957d, type: 3}
   gapplePrefab: {fileID: 8086227370044697032, guid: 21c33fb8bf6918e4fbda38fa2f8f22d8, type: 3}
   spapplePrefab: {fileID: 5366047094726540853, guid: decdef4dd6a470640a451800d650b7ca, type: 3}
