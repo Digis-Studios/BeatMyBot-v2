@@ -217,10 +217,15 @@ Trees are static entities that spawn apples. They are part of the `map` object:
 - You cannot access the internet or instantate more processes. 
 
 ## Creating Your Bot
-Quick Start: Download and extract the zip file from the latest release (https://github.com/Digis-Studios/BeatMyBot-v2/releases).Then follow the README from the extracted folder. This approach gives you a working template to start from, so you can focus on strategy rather than setup! Remember the following restricitions when developing:
+Quick Start: Download and extract the zip file from the latest release (https://github.com/Digis-Studios/BeatMyBot-v2/releases). Then follow the README from the extracted folder. This approach gives you a working template to start from, so you can focus on strategy rather than setup! Remember the following restricitions when developing:
 - Bot must respond in 500ms.
 - Size of bot folder must be less than 10MB.
 ---
+
+## Checkpoints:
+Checkpoint 1: Give brief about the strategy you plan to use to create you bot. Pull all resources and get used to them. Add a screenshot of the provided Ssssimulator running the example match or any match your bot might have played.
+
+Checkpoint 2: Submit to Sprint 1 (form will be shared later). Add a screenie of this. Also submit a detaailed explanation of your strategy
 
 The following sections are mainly tricks and tips to help you develop your bot.
 
