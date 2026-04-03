@@ -27,6 +27,8 @@ public class ReplayManager : MonoBehaviour
     [Header("Snake Prefabs")]
     public GameObject player1Prefab;
     public GameObject player2Prefab;
+    public GameObject player1HeadPrefab;
+    public GameObject player2HeadPrefab;
 
     [Header("Apple Prefabs")]
     public GameObject applePrefab;
@@ -63,7 +65,7 @@ public class ReplayManager : MonoBehaviour
     private Image pauseButtonImage;
 
     // --- UPDATED: Added new Enum types for trees and shed walls ---
-    private enum CellType { Empty, Snake1, Snake2, Wall, AppleNormal, AppleGod, AppleSpeed, AppleStun, ApplePoison, TreeNormal, TreeGolden, ShedWall }
+    private enum CellType { Empty, Snake1, Snake2, Snake1Head, Snake2Head, Wall, AppleNormal, AppleGod, AppleSpeed, AppleStun, ApplePoison, TreeNormal, TreeGolden, ShedWall }
 
     void Start()
     {
@@ -254,8 +256,23 @@ public class ReplayManager : MonoBehaviour
         // -------------------------------------
 
         foreach (var apple in state.apples) if (IsValid(apple.x, apple.y)) targetGrid[apple.x, apple.y] = GetAppleType(apple.type);
-        if (state.snakes.Count > 0 && state.snakes[0].alive) foreach (var part in state.snakes[0].body) if (IsValid(part.x, part.y)) targetGrid[part.x, part.y] = CellType.Snake1;
-        if (state.snakes.Count > 1 && state.snakes[1].alive) foreach (var part in state.snakes[1].body) if (IsValid(part.x, part.y)) targetGrid[part.x, part.y] = CellType.Snake2;
+        if (state.snakes.Count > 0 && state.snakes[0].alive) 
+        {
+            for (int i = 0; i < state.snakes[0].body.Count; i++) 
+            {
+                var part = state.snakes[0].body[i];
+                if (IsValid(part.x, part.y)) targetGrid[part.x, part.y] = (i == 0) ? CellType.Snake1Head : CellType.Snake1;
+            }
+        }
+        
+        if (state.snakes.Count > 1 && state.snakes[1].alive) 
+        {
+            for (int i = 0; i < state.snakes[1].body.Count; i++) 
+            {
+                var part = state.snakes[1].body[i];
+                if (IsValid(part.x, part.y)) targetGrid[part.x, part.y] = (i == 0) ? CellType.Snake2Head : CellType.Snake2;
+            }
+        }
 
         // Instantiate differences
         for (int x = 0; x < width; x++)
@@ -303,12 +320,12 @@ public class ReplayManager : MonoBehaviour
             case CellType.Snake1: prefabToSpawn = player1Prefab; altitude = 0.5f; break;
             case CellType.Snake2: prefabToSpawn = player2Prefab; altitude = 0.5f; break;
             case CellType.Wall:   prefabToSpawn = wallPrefab;    altitude = 0.5f; break; 
+            case CellType.Snake1Head: prefabToSpawn = player1HeadPrefab; altitude = 0.5f; break;
+            case CellType.Snake2Head: prefabToSpawn = player2HeadPrefab; altitude = 0.5f; break; 
             
-            // --- NEW: Setting new prefabs ---
             case CellType.TreeNormal: prefabToSpawn = normalTreePrefab; altitude = 0f; break;
             case CellType.TreeGolden: prefabToSpawn = goldenTreePrefab; altitude = 0f; break;
             case CellType.ShedWall:   prefabToSpawn = shedWallPrefab;   altitude = 0.5f; break;
-            // --------------------------------
 
             case CellType.AppleNormal: prefabToSpawn = applePrefab; break;
             case CellType.AppleGod:    prefabToSpawn = gapplePrefab; break;
