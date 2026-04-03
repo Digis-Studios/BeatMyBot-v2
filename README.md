@@ -26,7 +26,7 @@ Your bot is your player with perfect information about the board but no control 
 engine is the impartial referee that enforces all rules and keeps the game fair. And you are the
 COACH! You must teach your bot the best strategy to WIN!
 
-You can participate **individually** or in a **team of maximum 2 members**. Each team submits one bot. Register your team [here](https://docs.google.com/forms/d/e/1FAIpQLScZGOzJTZ9eWz8sNgBig5ds-bvxkmKpEabHolpawLsYydMARg/viewform?usp=dialog).
+You can participate **individually** or in a **team of maximum 2 members**. Each team submits one bot.
 
 ## Timeline
 
@@ -39,7 +39,7 @@ You can participate **individually** or in a **team of maximum 2 members**. Each
 
 So now that you understand the what the competition is about lets is dive into the game rules
 
-## Game Rules - 2 Player Snake
+## Game Rules - 2 Player Snake v2
 
 ### Basic Mechanics
 
