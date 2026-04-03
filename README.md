@@ -217,24 +217,7 @@ Trees are static entities that spawn apples. They are part of the `map` object:
 - You cannot access the internet or instantate more processes. 
 
 ## Creating Your Bot
-
-### Quick Start:
-
-To participate in the competition, follow these steps:
-
-1. **Clone** this repository to your local machine
-2. Inside the `bots/` folder, **make a copy** of `example_python/` and rename it to `your_team_name/`
-3. **Update** the `name` field in `config.json` to your team name
-4. **Implement** your bot strategy by modifying `bot.py` (Python 3.12)
-5. **Add dependencies** to `requirements.txt` if you need external packages (e.g., `numpy`, `scipy`)
-6. **Set up Docker** for your bot (If you donot have docker installed, see Docker Setup in Apendix):
-   - Windows: `.\scripts\create_dockerfile.ps1 -BotDir .\.bots\your_team_name`
-   - Linux/Mac: `./scripts/create_dockerfile.sh ./bots/your_team_name`
-7. **Update** `config.json` with Docker settings (add `docker_image`, `docker_cpus`, `docker_memory` fields)
-8. **Test** your bot locally using the test scripts
-9. **Submit** by compressing your team folder into a `.zip` file and submitting it through the **Google Form**
-
-This approach gives you a working template to start from, so you can focus on strategy rather than setup! Remember the following restricitions when developing:
+Quick Start: Download and extract the zip file from the latest release (https://github.com/Digis-Studios/BeatMyBot-v2/releases).Then follow the README from the extracted folder. This approach gives you a working template to start from, so you can focus on strategy rather than setup! Remember the following restricitions when developing:
 - Bot must respond in 500ms.
 - Size of bot folder must be less than 10MB.
 ---
@@ -369,9 +352,11 @@ team_digis.zip
 **Good luck, and may your snake survive the longest!** 🐍
 
 ---
-The Specs are subject to change . Our decision will be the final decision in case of any dispute.
+The Specs are subject to change . Our decision will be the final decision in case of any dispute. 
 
-We have developed the backend for the first time. Some bugs are bound to be missed. If you find any please report to Siddhesh (7447454514; siddhesh.umarjee@iitgn.ac.in) or anyone from Digis. 
+We have developed the backend for the second time. Some bugs are bound to be missed. If you find any please report to Nilay (9372521258; nilay.verma@iitgn.ac.in) or Siddhesh (7447454514; siddhesh.umarjee@iitgn.ac.in) or anyone from Digis. 
+
+HUGE Respect to Divyansh for the wonderful ssssimulator and also to Hem for the interesting game rule ideation!
 
 ## Appendix
 
