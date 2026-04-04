@@ -1,3 +1,5 @@
+📢Form for Sprint 1 submission: [https://forms.gle/KdfhBv5Rd9mbsfVw9](https://forms.gle/KdfhBv5Rd9mbsfVw9). Submit by 11:00 PM.
+
 # Beat my Bot v2 - Game Ssspecifications
 
 Welcome to the second version of **Beat my Bot** challenge.
