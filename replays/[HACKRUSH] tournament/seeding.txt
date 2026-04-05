@@ -1,0 +1,52 @@
+======================================================================
+SNAKE GAME - TOURNAMENT SEEDING (Latest Round Robin)
+Generated: 2026-04-05 14:52:43
+======================================================================
+
+Total Participants: 8
+Total Matches: 28
+Scoring: Win = 3 pts | Draw = 1 pt | Loss = 0 pts
+
+FINAL SEEDING:
+----------------------------------------------------------------------
+
+Seed #1: Ferrate
+   Score: 18 points
+   Record: 6 Wins - 0 Draws - 1 Losses
+   Win Rate: 85.7%
+
+Seed #2: H_Bot
+   Score: 12 points
+   Record: 4 Wins - 0 Draws - 3 Losses
+   Win Rate: 57.1%
+
+Seed #3: HungryConda
+   Score: 12 points
+   Record: 4 Wins - 0 Draws - 3 Losses
+   Win Rate: 57.1%
+
+Seed #4: Nayanem_Vaktram
+   Score: 12 points
+   Record: 4 Wins - 0 Draws - 3 Losses
+   Win Rate: 57.1%
+
+Seed #5: snakey
+   Score: 12 points
+   Record: 4 Wins - 0 Draws - 3 Losses
+   Win Rate: 57.1%
+
+Seed #6: my_bot
+   Score: 9 points
+   Record: 3 Wins - 0 Draws - 4 Losses
+   Win Rate: 42.9%
+
+Seed #7: beatbot_ultra
+   Score: 6 points
+   Record: 2 Wins - 0 Draws - 5 Losses
+   Win Rate: 28.6%
+
+Seed #8: clanker_slayer
+   Score: 3 points
+   Record: 1 Wins - 0 Draws - 6 Losses
+   Win Rate: 14.3%
+
