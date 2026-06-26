@@ -1,8 +1,25 @@
 📢 ~~Form for Sprint 1 submission: [https://forms.gle/KdfhBv5Rd9mbsfVw9](https://forms.gle/KdfhBv5Rd9mbsfVw9). Submit by 11:00 PM.~~
 
-📢Result of Sprint 1 is in [replays](replays/roundrobin). Watch replay files to learn, modify and win!
+📢~~Result of Sprint 1 is in [replays](replays/roundrobin). Watch replay files to learn, modify and win!~~
 
-📢Form for Final submission: [https://forms.gle/KdfhBv5Rd9mbsfVw9](https://forms.gle/KdfhBv5Rd9mbsfVw9). Submit by 11:00 AM 05/04. All the best 🍀
+📢~~Form for Final submission: [https://forms.gle/KdfhBv5Rd9mbsfVw9](https://forms.gle/KdfhBv5Rd9mbsfVw9). Submit by 11:00 AM 05/04. All the best 🍀~~
+
+📢 The dramatic tournament can be viewed [here](https://youtu.be/s2twdjOFLDE?si=D5-uS9d4AK8SNHH6). Final tournament replays in [replays](replays). 
+
+<details>
+  <summary>Click to reveal winner</summary>
+
+  Congratulations to Ferrate for winning!!!
+</details>
+
+Tools used for BeatMyBot-v2 are made by Digis-IITGN:
+
+- Divyansh Sharma ([Diver202](https://github.com/Diver202))
+- Hem Tilva ([hemtilva](https://github.com/hemtilva))
+- Nilay Verma ([nilayverma](https://github.com/nilayverma)) 
+- Siddhesh Umarjee ([IdkRandomTry](https://github.com/IdkRandomTry))
+
+---
 
 # Beat my Bot v2 - Game Ssspecifications
 
