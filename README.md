@@ -9,7 +9,7 @@
 <details>
   <summary>Click to reveal winner</summary>
 
-  Congratulations to Ferrate for winning!!!
+  Congratulations to Ferrate by Akash Gupta for winning!!!
 </details>
 
 Tools used for BeatMyBot-v2 are made by Digis-IITGN:
